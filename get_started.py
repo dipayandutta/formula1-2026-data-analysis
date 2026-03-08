@@ -95,3 +95,7 @@ print(race.race_control_messages[['Lap', 'Category', 'Message']].head(10))
 print("####----------ALL DRIVER LIST--------#####")
 drivers = race.results['Abbreviation'].tolist()
 print("Drivers :",drivers)
+
+#### SOFT COMPUND LAPS #####
+soft_laps = race.laps[race.laps['Compound'] == 'SOFT']
+print(soft_laps)
