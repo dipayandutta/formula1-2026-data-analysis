@@ -136,4 +136,4 @@ MIT License — feel free to use, modify, and share.
 
 ---
 
-> Built with 🏎 FastF1 + 💻 Rich — because F1 data deserves a podium finish in your terminal.
+> Built with FastF1 + Rich — because F1 data deserves a podium finish in your terminal.
