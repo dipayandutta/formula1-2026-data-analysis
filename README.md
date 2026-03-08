@@ -7,7 +7,10 @@ A Python project for exploring and visualizing Formula 1 race data using [FastF1
 ![Rich](https://img.shields.io/badge/Rich-Terminal%20UI-green)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
-
+---
+![Alt text](data_display_1.png)
+![Alt text](data_display_2.png)
+---
 ---
 
 ##  Features
