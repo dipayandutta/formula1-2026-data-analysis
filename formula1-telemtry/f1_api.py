@@ -32,6 +32,15 @@ def _get_race_session(year: int, round_number: int):
     return _sessions[key]
 
 '''
+Get All Details without clustering
+'''
+@app.get("/race/details")
+def get_details(year: int=2026, round: int=1):
+    race = _get_race_session(year,round)
+
+    return race.results 
+
+'''
 race winner
 '''
 @app.get("/race/winner")
@@ -77,6 +86,80 @@ def get_results(year: int=2026, round: int=1):
             "points": int(row["Points"]) if row["Points"] > 0 else 0,
             })
     return {"year": year, "round": round, "event": race.event["EventName"], "resutls": results}
+
+'''
+Race Points 
+'''
+@app.get("/race/points")
+def get_points(year: int=2026, round: int=1):
+    race = _get_race_session(year,round)
+    scores = race.results[race.results["Points"] > 0].copy()
+    max_pts = int(scores["Points"].max())
+
+    data = []
+
+    for _,row in scores.iterrows():
+        data.append({
+
+            "driver": row["BroadcastName"],
+            "abbreviation" : row["Abbreviation"],
+            "team": row.get("TeamName", "-"),
+            "points" : int(row["Points"]),
+            })
+    return {max_pts: "max_pts", "scores": data}
+
+
+'''
+Fastest Lap 
+'''
+@app.get("/race/fastestlap")
+def get_fastest_lap(year: int=2026 , rounds: int=1):
+    race = _get_race_session(year,rounds)
+    driver_best = []
+
+    for drv in race.results["Abbreviation"]:
+        try:
+            laps = race.laps.pick_drivers(drv).pick_quicklaps()
+            if laps.empty:
+                continue
+            best = laps.pick_fastest()
+            lap_time = best["LapTime"].total_seconds()
+            mins = int(lap_time//60)
+            secs = lap_time % 60
+
+            driver_best.append({
+                "driver": drv,
+                "lap_time": f"{mins}:{secs:06.3f}",
+                "lap_time_second": round(lap_time,3),
+                "lap_number": int(best["LapNumber"])
+                })
+        except Exception as e :
+            raise e 
+
+    driver_best.sort(key=lambda x:x["lap_time_second"])
+    return {"fastest_laps": driver_best}
+
+
+'''
+Get the Weather information during the race 
+'''
+@app.get("/race/weather")
+def get_weather(year: int=2026, round: int=1):
+    race = _get_race_session(year,round)
+
+    try:
+        weather = race.weather_data
+        return{
+                "rainfall": bool(weather["Rainfall"].any())
+#                "avg_air_temp_c": round(float(weather["AirTemp"].mean()),1),
+#                 "avg_track_temp_c": round(float(weather["TrackTemp"].mean()),1),
+#                "avg_humidity_pct": round(float(weather["Humidity"].mean()),1),
+#                 "rainfall": bool(weather["Rainfall"].any()),
+                }
+    except Exception as e :
+        raise HTTPException(status_code=500, detail=f"Weather Data unavailable {e}")
+
+
 '''
 Calling Main Function
 '''
