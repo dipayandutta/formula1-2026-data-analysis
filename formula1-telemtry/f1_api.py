@@ -47,5 +47,38 @@ def get_winner(year: int=2026, round: int=1):
 
             }
 
+'''
+race result 
+'''
+
+@app.get("/race/results")
+def get_results(year: int=2026, round: int=1):
+    race = _get_race_session(year,round)
+    results = []
+
+    for _,row in race.results.iterrows():
+        pos = int(row["Position"]) if pd.notna(row["Position"]) else None 
+
+        if pos == 1:
+            time_str = str(row["Time"]).split("days")[-1] if pd.notna(row["Time"]) else "-"
+        elif pd.notna(row["Time"]):
+            time_str = "+" + str(row["Time"]).split("days")[-1]
+        else:
+            time_str = "-"
+
+        results.append({
+            "position" : pos,
+            "driver": row["BroadcastName"],
+            "abbreviation": row["Abbreviation"],
+            "team": row.get("TeamName", "-"),
+            "laps": int(row["Laps"]) if pd.notna(row["Laps"]) else None,
+            "time_gap": time_str,
+            "status": row["Status"],
+            "points": int(row["Points"]) if row["Points"] > 0 else 0,
+            })
+    return {"year": year, "round": round, "event": race.event["EventName"], "resutls": results}
+'''
+Calling Main Function
+'''
 if __name__ == "__main__":
     uvicorn.run("f1_api:app",host="0.0.0.0",port=8000,reload=True)
