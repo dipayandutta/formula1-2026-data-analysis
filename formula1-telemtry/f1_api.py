@@ -31,6 +31,8 @@ def _get_race_session(year: int, round_number: int):
             raise HTTPException(status_code=500, detail=f"Failed to load session: {e}")
     return _sessions[key]
 
+
+
 '''
 Get All Details without clustering
 '''
@@ -39,6 +41,24 @@ def get_details(year: int=2026, round: int=1):
     race = _get_race_session(year,round)
 
     return race.results 
+
+
+'''
+Get the Race Information 
+'''
+
+@app.get("/race/info")
+def get_race_info(year: int=2026, round: int=1):
+    race = _get_race_session(year,round)
+    
+    return {
+
+            "event_name": race.event["EventName"],
+            "country": race.event["Country"],
+            "location": race.event["Location"],
+            "year": year,
+            "round": round,
+            }
 
 '''
 race winner
@@ -159,6 +179,26 @@ def get_weather(year: int=2026, round: int=1):
     except Exception as e :
         raise HTTPException(status_code=500, detail=f"Weather Data unavailable {e}")
 
+'''
+Drivers that not able start the race or retired 
+'''
+
+@app.get("/race/retirements")
+def get_retirements(year: int=2026, round: int=1):
+    race = _get_race_session(year,round)
+    drivers = race.results[race.results["status"].isin(["Retired", "Did not start"])]
+
+    data = []
+
+    for _, row in drivers.iterrows():
+        data.append({
+            "driver": row["BroadcastName"],
+            "abbreviation": row["Abbreviation"],
+            "team": row.get("TeamName", "-"),
+            "status": row["status"],
+            "laps_completed": int(row["Laps"]) if pd.notna(row["Laps"]) else 0,
+            })
+    return {"retirements": data}
 
 '''
 Calling Main Function
